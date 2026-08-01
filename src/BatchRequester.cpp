@@ -1,5 +1,7 @@
 #include "BatchRequester.hpp"
 #include "CommentData.hpp"
+#include "GJGameLevel.hpp"
+#include "CachedCommentsUpdatedEvent.hpp"
 #include "utils.hpp"
 
 BatchRequester& BatchRequester::get() {
@@ -32,7 +34,9 @@ arc::Future<geode::Result<>> BatchRequester::fetchComments(std::vector<int> ids)
     geode::Loader::get()->queueInMainThread([json] {
         for (auto level : UNWRAP_N_CAST(json.get("levels"), std::vector<matjson::Value>)) {
             auto data = CommentData(level);
-            
+            auto gjlevel = geode::cast::modify_cast<HookedGJGameLevel*>(GameLevelManager::get()->getSavedLevel(data.levelID));
+            gjlevel->m_fields->commentData = data;
+            CachedCommentsUpdatedEvent(data.levelID).send();
         }
     });
 
