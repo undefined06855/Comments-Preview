@@ -17,7 +17,7 @@ public:
     void queueID(int id);
     arc::Future<geode::Result<>> fetchComments(std::vector<int> ids);
 
-    geode::Result<const CommentData&> getCommentData(int id);
+    geode::Result<CommentData> getCommentData(int id);
 
     virtual void update(float dt) override;
 };

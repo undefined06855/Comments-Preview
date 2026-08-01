@@ -12,13 +12,14 @@
     "name": "Comments Preview",
     "developer": "undefined0",
     "description": "Shows top comments in the level list!",
-    "tags": [],
+    "tags": [ "interface" ],
 
     "dependencies": {
-        "geode.node-ids": "v1.23.3"
+        "geode.node-ids": "v1.23.3",
+        "alphalaneous.alphas-ui-pack": "v1.1.1"
     },
 
     "links": {
-        "source": "https://github.com/undefined06855/example-mod"
+        "source": "https://github.com/undefined06855/Comments-Preview"
     }
 }

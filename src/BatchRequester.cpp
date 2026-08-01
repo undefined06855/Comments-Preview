@@ -35,8 +35,8 @@ arc::Future<geode::Result<>> BatchRequester::fetchComments(std::vector<int> ids)
 
     GEODE_CO_UNWRAP_INTO(auto json, res.json());
 
-    auto error = UNWRAP_N_CAST(json.get("error"), std::string);
-    if (!error.empty()) {
+    if (json.contains("error")) {
+        auto error = UNWRAP_N_CAST(json.get("error"), std::string);
         co_return geode::Err(error);
     }
 
@@ -63,11 +63,11 @@ arc::Future<geode::Result<>> BatchRequester::fetchComments(std::vector<int> ids)
     co_return geode::Ok();
 }
 
-geode::Result<const CommentData&> BatchRequester::getCommentData(int id) {
+geode::Result<CommentData> BatchRequester::getCommentData(int id) {
     if (!m_cache.contains(id)) return geode::Err("not in cache");
 
     auto& data = m_cache.at(id);
-    if (!asp::Instant::now().durationSince(data.expiryTime).isZero()) {
+    if (data.expiryTime.until().isZero()) {
         m_cache.erase(id);
         return geode::Err("cached key expired!");
     }

@@ -1,5 +1,5 @@
 #include <Geode/modify/LevelCell.hpp>
-#include "CommentData.hpp"
+#include "../CommentData.hpp"
 
 class $modify(HookedLevelCell, LevelCell) {
     struct Fields {
@@ -10,5 +10,5 @@ class $modify(HookedLevelCell, LevelCell) {
     void loadFromLevel(GJGameLevel* level);
 
     void attemptAddComments();
-    void addComments(const CommentData& data);
+    void addComments(CommentData data);
 };
