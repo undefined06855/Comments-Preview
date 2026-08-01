@@ -1,6 +1,7 @@
 #include "LevelCell.hpp"
 #include "BatchRequester.hpp"
 #include "CachedCommentsUpdatedEvent.hpp"
+#include "CommentPreviewNode.hpp"
 
 HookedLevelCell::Fields::Fields()
     : attempts(0) {}
@@ -32,5 +33,17 @@ void HookedLevelCell::attemptAddComments() {
 
 void HookedLevelCell::addComments(const CommentData& data) {
     if (data.comments.empty()) return;
-    this->addChild(data.comments[0].player);
+
+    auto nameLabel = m_mainLayer->getChildByID("level-name");
+    if (!nameLabel) return;
+
+    auto pos = nameLabel->getPosition();
+    pos.x += nameLabel->getScaledContentWidth() + 10.f;
+
+    auto availableWidth = this->getContentWidth() - pos.x - 10.f;
+
+    auto node = CommentPreviewNode::create(data, availableWidth);
+    node->setID("comment-preview"_spr);
+    node->setPosition(pos);
+    m_mainLayer->addChild(node);
 }
