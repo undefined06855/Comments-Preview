@@ -1,22 +1,24 @@
 #include "CommentData.hpp"
 #include "utils.hpp"
 
-SingleComment::SingleComment(matjson::Value data) {
-    UNWRAP_INTO_MEMBER(content, data.get("content"))
+SingleComment::SingleComment(const matjson::Value& data) {
+    UNWRAP_INTO_MEMBER(content, data.get("comment"))
+    UNWRAP_INTO_MEMBER(playerName, data.get("player_name"))
+    UNWRAP_INTO_MEMBER(likes, data.get("likes"))
 
     auto iconData = cue::Icons();
-    UNWRAP_INTO_MEMBER(iconData.color1, data.get("iconMainColor"));
-    UNWRAP_INTO_MEMBER(iconData.color2, data.get("iconSecondaryColor"));
-    UNWRAP_INTO_MEMBER(iconData.glowColor, data.get("iconGlowColor"));
-    UNWRAP_INTO_MEMBER(iconData.id, data.get("iconFrame"));
-    UNWRAP_INTO_MEMBER_AS(iconData.type, data.get("iconType"), int);
+    UNWRAP_INTO_MEMBER(iconData.color1, data.get("icon_main_color"));
+    UNWRAP_INTO_MEMBER(iconData.color2, data.get("icon_secondary_color"));
+    UNWRAP_INTO_MEMBER(iconData.glowColor, data.get("icon_glow_color"));
+    UNWRAP_INTO_MEMBER(iconData.id, data.get("icon_frame"));
+    UNWRAP_INTO_MEMBER_AS(iconData.type, data.get("icon_type"), int);
     player = cue::PlayerIcon::create(iconData);
 }
 
-CommentData::CommentData(matjson::Value data) {
-    UNWRAP_INTO_MEMBER(levelID, data.get("levelID"))
+CommentData::CommentData(int id, const matjson::Value& data) {
+    levelID = id;
 
-    for (auto commentData : UNWRAP_N_CAST(data.get("comments"), std::vector<matjson::Value>)) {
+    for (auto commentData : data) {
         comments.push_back(SingleComment(commentData));
     }
 }

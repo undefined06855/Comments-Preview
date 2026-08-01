@@ -1,6 +1,5 @@
 #include "BatchRequester.hpp"
 #include "CommentData.hpp"
-#include "GJGameLevel.hpp"
 #include "CachedCommentsUpdatedEvent.hpp"
 #include "utils.hpp"
 
@@ -18,29 +17,62 @@ void BatchRequester::queueID(int id) {
 }
 
 arc::Future<geode::Result<>> BatchRequester::fetchComments(std::vector<int> ids) {
+    if (ids.size() == 0) co_return geode::Err("no ids");
+
     std::string levelIDs = "";
     levelIDs.reserve(ids.size() * 10);
-    for (auto id : ids) { levelIDs += fmt::format("{},", ids); }
+    for (auto id : ids) { levelIDs += fmt::format("{},", id); }
+
+
+    levelIDs.erase(levelIDs.size() - 1);
 
     geode::utils::web::WebRequest req;
     req.param("levelIDs", levelIDs);
     req.timeout(std::chrono::seconds(10));
 
-    auto res = co_await req.get("https://top-comments.undefined0.dev/v1/comments");
+    // TODO: remember to set the url back
+    auto res = co_await req.get("http://localhost:8080/v1/comments");
 
     GEODE_CO_UNWRAP_INTO(auto json, res.json());
 
-    // creating CommentData is not thread safe
-    geode::Loader::get()->queueInMainThread([json] {
-        for (auto level : UNWRAP_N_CAST(json.get("levels"), std::vector<matjson::Value>)) {
-            auto data = CommentData(level);
-            auto gjlevel = geode::cast::modify_cast<HookedGJGameLevel*>(GameLevelManager::get()->getSavedLevel(data.levelID));
-            gjlevel->m_fields->commentData = data;
-            CachedCommentsUpdatedEvent(data.levelID).send();
+    auto error = UNWRAP_N_CAST(json.get("error"), std::string);
+    if (!error.empty()) {
+        co_return geode::Err(error);
+    }
+
+    geode::Loader::get()->queueInMainThread([this, json] {
+        for (auto [key, level] : json.get("levels").unwrapOr(matjson::Value())) {
+            auto id = geode::utils::numFromString<int>(key);
+
+            if (id.isErr()) {
+                geode::log::warn("invalid id {}", key);
+                continue;
+            }
+
+            int unwrappedID = id.unwrap();
+            m_cache.emplace(unwrappedID, CommentDataWithTimeout{
+                .data = CommentData(unwrappedID, level),
+                .expiryTime = asp::Instant::now().saturatingAdd(asp::Duration::fromMinutes(10))
+            });
+
+            CachedCommentsUpdatedEvent(unwrappedID).send();
         }
+
     });
 
     co_return geode::Ok();
+}
+
+geode::Result<const CommentData&> BatchRequester::getCommentData(int id) {
+    if (!m_cache.contains(id)) return geode::Err("not in cache");
+
+    auto& data = m_cache.at(id);
+    if (!asp::Instant::now().durationSince(data.expiryTime).isZero()) {
+        m_cache.erase(id);
+        return geode::Err("cached key expired!");
+    }
+
+    return geode::Ok(data.data);
 }
 
 void BatchRequester::update(float dt) {
@@ -50,9 +82,11 @@ void BatchRequester::update(float dt) {
     geode::async::spawn([this, queueCopy = std::move(queueCopy)] -> arc::Future<> {
         auto res = co_await this->fetchComments(queueCopy);
         if (res.isErr()) {
-            geode::log::warn("Failed to fetch {} comments: {}", queueCopy.size(), res.unwrapErr());
+            geode::log::warn("failed to fetch {} comments: {}", queueCopy.size(), res.unwrapErr());
         }
     });
+
+    m_levelIDQueue.clear();
 }
 
 $on_mod(Loaded) {

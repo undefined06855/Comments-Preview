@@ -2,14 +2,16 @@
 #include <cue/PlayerIcon.hpp>
 
 struct SingleComment {
-    SingleComment(matjson::Value data);
+    SingleComment(const matjson::Value& data);
 
     std::string content;
+    std::string playerName;
+    int likes;
     geode::Ref<cue::PlayerIcon> player;
 };
 
 struct CommentData {
-    CommentData(matjson::Value data);
+    CommentData(int id, const matjson::Value& data);
 
     std::vector<SingleComment> comments;
     int levelID;

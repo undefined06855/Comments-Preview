@@ -6,10 +6,10 @@
         if (cast.isOk()) { \
             output = cast.unwrap(); \
         } else { \
-            geode::log::warn("Could not unwrap casted: {}", thing.unwrapErr()); \
+            geode::log::warn("Could not unwrap casted: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
         } \
     } else { \
-        geode::log::warn("Could not unwrap: {}", thing.unwrapErr()); \
+        geode::log::warn("Could not unwrap: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
     }
 
 #define UNWRAP_INTO_MEMBER_AS(output, thing, asType) \
@@ -18,10 +18,10 @@
         if (cast.isOk()) { \
             output = static_cast<decltype(output)>(cast.unwrap()); \
         } else { \
-            geode::log::warn("Could not unwrap casted: {}", thing.unwrapErr()); \
+            geode::log::warn("Could not unwrap casted: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
         } \
     } else { \
-        geode::log::warn("Could not unwrap: {}", thing.unwrapErr()); \
+        geode::log::warn("Could not unwrap: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
     }
 
 #define UNWRAP_N_CAST(thing, type) \
