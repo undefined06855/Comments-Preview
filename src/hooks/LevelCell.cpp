@@ -18,7 +18,6 @@ void HookedLevelCell::attemptAddComments() {
     if (data.isErr()) {
         if (fields->attempts > 3) return;
 
-        geode::log::debug("{}", data.unwrapErr());
         BatchRequester::get().queueID(m_level->m_levelID);
         fields->attempts += 1;
 
@@ -36,10 +35,14 @@ void HookedLevelCell::attemptAddComments() {
 void HookedLevelCell::addComments(CommentData data) {
     // wait one frame else we have zero content size for some reason
     this->runAction(geode::cocos::CallFuncExt::create([this, data = std::move(data)] {
-        geode::log::info("adding {} comments to {}", data.comments.size(), data.levelID);
+        if (this->getContentSize() == cocos2d::CCSize{ 0.f, 0.f }) {
+            this->setContentSize(m_backgroundLayer->getContentSize());
+        }
+
         if (data.comments.empty()) return;
 
-        auto nameLabel = m_mainLayer->getChildByType<cocos2d::CCLabelBMFont*>();
+        auto nameLabel = m_mainLayer->getChildByID("level-name");
+        if (!nameLabel) return;
 
         auto pos = nameLabel->getPosition();
         pos.x += nameLabel->getScaledContentWidth() + 10.f;

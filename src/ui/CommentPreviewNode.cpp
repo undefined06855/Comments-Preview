@@ -17,7 +17,8 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
     m_index = -1;
     m_data = std::move(data);
 
-    float labelPadLeft = 12.f;
+    float labelPadLeft = 15.f;
+    float labelPadRight = 20.f;
     float iconXPos = 8.0625;
 
     this->setAnchorPoint({ 0.f, .5f });
@@ -32,10 +33,6 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
     auto labelWrapper = cocos2d::CCNode::create();
     labelWrapper->setContentSize({ this->getContentWidth() - iconXPos, this->getContentHeight() });
 
-    // since rendernode doesnt use a ref
-    labelWrapper->retain();
-    this->addCleanupCallback([=] { labelWrapper->release(); });
-
     auto label = cocos2d::CCLabelBMFont::create("...", "chatFont.fnt");
     label->setScale(.6f);
     label->setAnchorPoint({ 0.f, .5f });
@@ -46,15 +43,20 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
     renderNode->setAnchorPoint({ 0.f, .5f });
     this->addChildAtPosition(renderNode, geode::Anchor::Left, { iconXPos, 0.f });
 
+    // since rendernode doesnt use a ref
+    labelWrapper->retain();
+    renderNode->addCleanupCallback([=] { labelWrapper->release(); });
+
     // this gets picked up in the shader
     // not sure why uniforms dont work, they just dont?
-
     uint16_t width = renderNode->getContentWidth();
+    uint16_t height = renderNode->getContentHeight();
     renderNode->setColor({
         static_cast<GLubyte>(width & 0xff),
         static_cast<GLubyte>((width >> 8) & 0xff),
-        0
+        static_cast<GLubyte>((height >> 8) & 0xff)
     });
+    renderNode->setOpacity(static_cast<GLubyte>(height & 0xff));
 
     renderNode->setShaderProgram(cocos2d::CCShaderCache::sharedShaderCache()->programForKey("fade_shader"_spr));
 
@@ -74,9 +76,24 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
             }), cocos2d::CCDelayTime::create(1.5f),
 
             geode::cocos::CallFuncExt::create([=, this] {
-                if (labelWrapper->getContentWidth() > label->getScaledContentWidth()) return;
-                label->runAction(cocos2d::CCMoveBy::create(2.f, { -(label->getScaledContentWidth() - labelWrapper->getContentWidth()) - labelPadLeft*2.f, 0.f }));
-            }), cocos2d::CCDelayTime::create(2.5f),
+                float movementLeft = -(label->getScaledContentWidth() - labelWrapper->getContentWidth()) - labelPadLeft - labelPadRight;
+                if (movementLeft > 0) return;
+
+                // this lets us use a variable length and delay
+                // because the ccdelaytime's delay gets evaluated once in init and then not again
+                // there's certainly better solutions to this but this is the simplest i could think of without making
+                // a custom ccactioninterval
+
+                float length = label->getContentWidth() / 150.f;
+                label->runAction(cocos2d::CCSequence::create(
+                    geode::cocos::CallFuncExt::create([this] { this->pauseSchedulerAndActions(); }),
+                    cocos2d::CCMoveBy::create(length, { movementLeft, 0.f }),
+                    geode::cocos::CallFuncExt::create([this] { this->resumeSchedulerAndActions(); }),
+                    nullptr
+                ));
+            }),
+
+            cocos2d::CCDelayTime::create(.5f),
 
             geode::cocos::CallFuncExt::create([=, this] {
                 label->runAction(cocos2d::CCFadeOut::create(1.f));

@@ -30,18 +30,34 @@ varying vec2 v_texCoord;
 uniform sampler2D CC_Texture0;
 
 void main() {
-    // fade 30 cocos units on the right edge
-    // left edge is just the icon cutting it off that's fine
-
     // this is because we shoved it into the colour instead of like using a uniform like a normal person
     // if anyone can figure out why the uniform just cant be set let me know
     float width = floor(v_fragmentColor.r * 255.0 + 0.5) + floor(v_fragmentColor.g * 255.0 + 0.5) * 256.0;
+    float height = floor(v_fragmentColor.a * 255.0 + 0.5) + floor(v_fragmentColor.b * 255.0 + 0.5) * 256.0;
 
+    // add a black outline
+    vec2 offset = vec2(0.5 / width, 0.5 / height);
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2(-1.0, -1.0)).a;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 0.0, -1.0)).a;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 1.0, -1.0)).a;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2(-1.0,  0.0)).a;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 0.0,  0.0)).a;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 1.0,  0.0)).a;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2(-1.0,  1.0)).a;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 0.0,  1.0)).a;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 1.0,  1.0)).a;
+
+    // fade 30 units on the right edge
     float fadeStart = width - 30.0;
     float fadeEnd = width - 5.0;
     float alpha = 1.0 - smoothstep(fadeStart, fadeEnd, v_texCoord.x * width);
 
-    gl_FragColor = texture2D(CC_Texture0, v_texCoord);
+    // fade 5 units on the left edge
+    fadeStart = 0.0;
+    fadeEnd = 5.0;
+    alpha *= 1.0 - smoothstep(fadeStart, fadeEnd, v_texCoord.x * width);
+
+    gl_FragColor += texture2D(CC_Texture0, v_texCoord);
     gl_FragColor.a *= alpha;
 }
 )";

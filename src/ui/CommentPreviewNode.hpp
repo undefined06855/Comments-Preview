@@ -9,4 +9,6 @@ public:
 
     int m_index;
     CommentData m_data;
+
+    float m_movementTime;
 };
