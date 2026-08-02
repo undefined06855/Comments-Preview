@@ -1,5 +1,4 @@
 #include "CommentPreviewNode.hpp"
-#include<alphalaneous.alphas-ui-pack/include/nodes/RenderNode.hpp>
 
 CommentPreviewNode* CommentPreviewNode::create(CommentData data, float availableWidth) {
     auto ret = new CommentPreviewNode;
@@ -30,19 +29,34 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
     this->addChildAtPosition(icon, geode::Anchor::Left, { iconXPos, 0.f });
 
     // so that the rendernode has the correct size with constrain set to true
-    m_labelWrapper = cocos2d::CCNode::create();
-    m_labelWrapper->setPosition({ iconXPos, this->getContentHeight() / 2.f });
-    m_labelWrapper->setContentSize({ this->getContentWidth() - iconXPos, this->getContentHeight() });
+    auto labelWrapper = cocos2d::CCNode::create();
+    labelWrapper->setContentSize({ this->getContentWidth() - iconXPos, this->getContentHeight() });
+
+    // since rendernode doesnt use a ref
+    labelWrapper->retain();
+    this->addCleanupCallback([=] { labelWrapper->release(); });
 
     auto label = cocos2d::CCLabelBMFont::create("...", "chatFont.fnt");
     label->setScale(.6f);
     label->setAnchorPoint({ 0.f, .5f });
     label->setPosition({ labelPadLeft, this->getContentHeight() / 2.f });
-    m_labelWrapper->addChild(label);
+    labelWrapper->addChild(label);
 
-    auto renderNode = alpha::ui::RenderNode::create(m_labelWrapper, true);
+    auto renderNode = alpha::ui::RenderNode::create(labelWrapper, true);
     renderNode->setAnchorPoint({ 0.f, .5f });
     this->addChildAtPosition(renderNode, geode::Anchor::Left, { iconXPos, 0.f });
+
+    // this gets picked up in the shader
+    // not sure why uniforms dont work, they just dont?
+
+    uint16_t width = renderNode->getContentWidth();
+    renderNode->setColor({
+        static_cast<GLubyte>(width & 0xff),
+        static_cast<GLubyte>((width >> 8) & 0xff),
+        0
+    });
+
+    renderNode->setShaderProgram(cocos2d::CCShaderCache::sharedShaderCache()->programForKey("fade_shader"_spr));
 
     this->runAction(cocos2d::CCRepeatForever::create(
         cocos2d::CCSequence::create(
@@ -60,8 +74,8 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
             }), cocos2d::CCDelayTime::create(1.5f),
 
             geode::cocos::CallFuncExt::create([=, this] {
-                if (m_labelWrapper->getContentWidth() > label->getScaledContentWidth()) return;
-                label->runAction(cocos2d::CCMoveBy::create(2.f, { -(label->getScaledContentWidth() - m_labelWrapper->getContentWidth()) - labelPadLeft*2.f, 0.f }));
+                if (labelWrapper->getContentWidth() > label->getScaledContentWidth()) return;
+                label->runAction(cocos2d::CCMoveBy::create(2.f, { -(label->getScaledContentWidth() - labelWrapper->getContentWidth()) - labelPadLeft*2.f, 0.f }));
             }), cocos2d::CCDelayTime::create(2.5f),
 
             geode::cocos::CallFuncExt::create([=, this] {

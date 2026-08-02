@@ -34,6 +34,7 @@ void HookedLevelCell::attemptAddComments() {
 }
 
 void HookedLevelCell::addComments(CommentData data) {
+    // wait one frame else we have zero content size for some reason
     this->runAction(geode::cocos::CallFuncExt::create([this, data = std::move(data)] {
         geode::log::info("adding {} comments to {}", data.comments.size(), data.levelID);
         if (data.comments.empty()) return;
@@ -42,9 +43,9 @@ void HookedLevelCell::addComments(CommentData data) {
 
         auto pos = nameLabel->getPosition();
         pos.x += nameLabel->getScaledContentWidth() + 10.f;
+        pos.y -= 2.5f;
 
         auto availableWidth = this->getContentWidth() - pos.x;
-        geode::log::info("available width: {}", availableWidth);
 
         auto node = CommentPreviewNode::create(std::move(data), availableWidth);
         node->setID("comment-preview"_spr);
