@@ -25,21 +25,25 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
     this->setContentSize({ availableWidth, 16.f });
 
     auto icon = cue::PlayerIcon::create(IconType::Cube);
+    icon->setID("icon");
     icon->setScale(.5f);
     icon->setZOrder(2);
     this->addChildAtPosition(icon, geode::Anchor::Left, { iconXPos, 0.f });
 
     // so that the rendernode has the correct size with constrain set to true
     m_labelWrapper = cocos2d::CCNode::create();
+    m_labelWrapper->setID("label-wrapper");
     m_labelWrapper->setContentSize({ this->getContentWidth() - iconXPos, this->getContentHeight() });
 
     auto label = cocos2d::CCLabelBMFont::create("...", "chatFont.fnt");
+    label->setID("label");
     label->setScale(.6f);
     label->setAnchorPoint({ 0.f, .5f });
     label->setPosition({ labelPadLeft, this->getContentHeight() / 2.f });
     m_labelWrapper->addChild(label);
 
     auto renderNode = alpha::ui::RenderNode::create(m_labelWrapper, true);
+    renderNode->setID("render-node");
     renderNode->setAnchorPoint({ 0.f, .5f });
     this->addChildAtPosition(renderNode, geode::Anchor::Left, { iconXPos, 0.f });
 

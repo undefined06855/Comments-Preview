@@ -55,8 +55,8 @@ void HookedLevelCell::addComments(CommentData data) {
         // mini
         pos.y -= 12.f;
 
-        static const std::array<const char*, 5> nodesToMove = {
-            "ncs-icon", "song-name", "coin-icon-1", "coin-icon-2", "coin-icon-3"
+        static const std::array<const char*, 6> nodesToMove = {
+            "ncs-icon", "song-name", "coin-icon-1", "coin-icon-2", "coin-icon-3", "zilko.artist_logos/artist-logo"
         };
 
         for (auto nodeID : nodesToMove) {
