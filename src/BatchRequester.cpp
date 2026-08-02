@@ -57,7 +57,6 @@ arc::Future<geode::Result<>> BatchRequester::fetchComments(std::vector<int> ids)
 
             CachedCommentsUpdatedEvent(unwrappedID).send();
         }
-
     });
 
     co_return geode::Ok();

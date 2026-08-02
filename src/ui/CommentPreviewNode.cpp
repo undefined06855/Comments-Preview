@@ -30,22 +30,18 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
     this->addChildAtPosition(icon, geode::Anchor::Left, { iconXPos, 0.f });
 
     // so that the rendernode has the correct size with constrain set to true
-    auto labelWrapper = cocos2d::CCNode::create();
-    labelWrapper->setContentSize({ this->getContentWidth() - iconXPos, this->getContentHeight() });
+    m_labelWrapper = cocos2d::CCNode::create();
+    m_labelWrapper->setContentSize({ this->getContentWidth() - iconXPos, this->getContentHeight() });
 
     auto label = cocos2d::CCLabelBMFont::create("...", "chatFont.fnt");
     label->setScale(.6f);
     label->setAnchorPoint({ 0.f, .5f });
     label->setPosition({ labelPadLeft, this->getContentHeight() / 2.f });
-    labelWrapper->addChild(label);
+    m_labelWrapper->addChild(label);
 
-    auto renderNode = alpha::ui::RenderNode::create(labelWrapper, true);
+    auto renderNode = alpha::ui::RenderNode::create(m_labelWrapper, true);
     renderNode->setAnchorPoint({ 0.f, .5f });
     this->addChildAtPosition(renderNode, geode::Anchor::Left, { iconXPos, 0.f });
-
-    // since rendernode doesnt use a ref
-    labelWrapper->retain();
-    renderNode->addCleanupCallback([=] { labelWrapper->autorelease(); });
 
     // this gets picked up in the shader
     // not sure why uniforms dont work, they just dont?
@@ -76,7 +72,7 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
             }), cocos2d::CCDelayTime::create(1.5f),
 
             geode::cocos::CallFuncExt::create([=, this] {
-                float movementLeft = -(label->getScaledContentWidth() - labelWrapper->getContentWidth()) - labelPadLeft - labelPadRight;
+                float movementLeft = -(label->getScaledContentWidth() - m_labelWrapper->getContentWidth()) - labelPadLeft - labelPadRight;
                 if (movementLeft > 0) return;
 
                 // this lets us use a variable length and delay

@@ -9,4 +9,7 @@ public:
 
     int m_index;
     CommentData m_data;
+
+    // just because rendernode doesnt use a ref
+    geode::Ref<cocos2d::CCNode> m_labelWrapper;
 };
