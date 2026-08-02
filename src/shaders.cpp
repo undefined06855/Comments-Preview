@@ -55,7 +55,7 @@ void main() {
     // fade 5 units on the left edge
     fadeStart = 0.0;
     fadeEnd = 5.0;
-    alpha *= 1.0 - smoothstep(fadeStart, fadeEnd, v_texCoord.x * width);
+    alpha *= smoothstep(fadeStart, fadeEnd, v_texCoord.x * width);
 
     gl_FragColor += texture2D(CC_Texture0, v_texCoord);
     gl_FragColor.a *= alpha;
