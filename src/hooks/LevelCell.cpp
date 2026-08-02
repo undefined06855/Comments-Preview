@@ -48,6 +48,10 @@ void HookedLevelCell::addComments(CommentData data) {
         pos.x += nameLabel->getScaledContentWidth() + 10.f;
         pos.y -= 2.5f;
 
+        if (m_mainLayer->getChildByID("percentage-label") || m_mainLayer->getChildByID("completed-icon")) {
+            pos.x += 30.f;
+        }
+
         auto availableWidth = this->getContentWidth() - pos.x;
 
         auto node = CommentPreviewNode::create(std::move(data), availableWidth);

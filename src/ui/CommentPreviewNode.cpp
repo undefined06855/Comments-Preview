@@ -45,7 +45,7 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
 
     // since rendernode doesnt use a ref
     labelWrapper->retain();
-    renderNode->addCleanupCallback([=] { labelWrapper->release(); });
+    renderNode->addCleanupCallback([=] { labelWrapper->autorelease(); });
 
     // this gets picked up in the shader
     // not sure why uniforms dont work, they just dont?
