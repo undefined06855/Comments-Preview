@@ -45,12 +45,35 @@ void HookedLevelCell::addComments(CommentData data) {
 
     if (data.comments.empty()) return;
 
+    // level tags disablement
+    bool isMini = this->getContentHeight() < 70.f;
+    if (isMini && geode::Loader::get()->isModLoaded("kampwski.level_tags")) {
+        if (!geode::Mod::get()->getSavedValue<bool>("shown-level-tags-warning", false)) {
+            geode::Mod::get()->setSavedValue("shown-level-tags-warning", true);
+
+            geode::PopupManager::get().alert(
+                "Comments Preview",
+                fmt::format(
+                    "<cj>Comments Preview</c> is <cr>not</c> compatible with <co>Level Tags</c> while using the "
+                    "<ca>compact view</c>.\n\nThe mod will <co>not activate</c>, since there will be <cy>visual "
+                    "issues</c>.\n{}",
+                    geode::Loader::get()->isModLoaded("cvolton.compact_lists")
+                        ? "Either <cc>toggle off</c> compact list view, or <cr>disable</c> Level Tags."
+                        : "Please <cr>disable</c> level tags."
+                ),
+                "ok"
+            ).showQueue();
+
+        }
+        
+        return;
+    }
+
     auto nameLabel = m_mainLayer->getChildByID("level-name");
     if (!nameLabel) return;
 
     auto pos = nameLabel->getPosition();
 
-    bool isMini = this->getContentHeight() < 70.f;
     if (isMini) {
         // mini
         pos.y -= 12.f;
@@ -79,7 +102,7 @@ void HookedLevelCell::addComments(CommentData data) {
 
     auto availableWidth = this->getContentWidth() - pos.x;
 
-    if (isMini) availableWidth += 20.f;
+    if (isMini) availableWidth -= 16.f;
 
     auto node = CommentPreviewNode::create(std::move(data), availableWidth);
     node->setID("comment-preview"_spr);
@@ -87,21 +110,4 @@ void HookedLevelCell::addComments(CommentData data) {
     m_mainLayer->addChild(node);
 
     if (isMini) node->setScale(.7f);
-
-    // level tags warning
-    if (isMini && !geode::Mod::get()->getSavedValue<bool>("shown-level-tags-warning", false) && geode::Loader::get()->isModLoaded("kampwski.level_tags")) {
-        geode::Mod::get()->setSavedValue("shown-level-tags-warning", true);
-
-        geode::PopupManager::get().alert(
-            "Comments Preview",
-            fmt::format(
-                "<cj>Comments Preview</c> is <cr>not</c> compatible with <co>Level Tags</c> while using the "
-                "<ca>compact view</c>.\n\nYou'll likely notice <cy>visual issues</c>, {}",
-                geode::Loader::get()->isModLoaded("cvolton.compact_lists")
-                    ? "either <cc>toggle off</c> compact list view, or <cr>disable</c> Level Tags."
-                    : "please <cr>disable</c> level tags."
-            ),
-            "ok"
-        ).showQueue();
-    }
 }
