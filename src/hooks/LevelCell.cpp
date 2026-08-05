@@ -63,6 +63,7 @@ void HookedLevelCell::addComments(CommentData data) {
             auto node = m_mainLayer->getChildByID(nodeID);
             if (!node) continue;
             node->setPositionY(node->getPositionY() - 5.f);
+            node->setScale(node->getScale() * .9f);
         }
     } else {
         // normal size
