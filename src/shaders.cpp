@@ -35,6 +35,8 @@ void main() {
     float width = floor(v_fragmentColor.r * 255.0 + 0.5) + floor(v_fragmentColor.g * 255.0 + 0.5) * 256.0;
     float height = floor(v_fragmentColor.a * 255.0 + 0.5) + floor(v_fragmentColor.b * 255.0 + 0.5) * 256.0;
 
+    gl_FragColor = vec4(0.0);
+
     // add a black outline
     vec2 offset = vec2(0.5 / width, 0.5 / height);
     gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2(-1.0, -1.0)).a;
