@@ -30,8 +30,7 @@ arc::Future<geode::Result<>> BatchRequester::fetchComments(std::vector<int> ids)
     req.param("levelIDs", levelIDs);
     req.timeout(std::chrono::seconds(10));
 
-    // TODO: remember to set the url back
-    auto res = co_await req.get("https://comments.undefined0.dev/v1/comments");
+    auto res = co_await req.get("https://comments-preview.dankmeme.dev/v1/comments");
 
     GEODE_CO_UNWRAP_INTO(auto json, res.json());
 
