@@ -10,5 +10,6 @@ class $modify(HookedLevelCell, LevelCell) {
     void loadFromLevel(GJGameLevel* level);
 
     void attemptAddComments();
+    void queueThis();
     void addComments(CommentData data);
 };
