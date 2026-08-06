@@ -17,8 +17,18 @@ void HookedLevelCell::attemptAddComments() {
 
     auto data = BatchRequester::get().getCommentData(m_level->m_levelID);
     if (data.isErr()) {
-        if (fields->attempts > 3) return;
+        this->queueThis();
+        return;
+    }
 
+    this->addComments(std::move(data.unwrap()));
+}
+
+void HookedLevelCell::queueThis() {
+    auto fields = m_fields.self();
+    if (fields->attempts > 3) return;
+
+    auto queue = [=, this] {
         BatchRequester::get().queueID(m_level->m_levelID);
         fields->attempts += 1;
 
@@ -27,11 +37,18 @@ void HookedLevelCell::attemptAddComments() {
             this->attemptAddComments();
             return geode::ListenerResult::Propagate;
         });
+    };
 
-        return;
+    if (fields->attempts == 0) {
+        queue();
+    } else {
+        this->runAction(cocos2d::CCSequence::createWithTwoActions(
+            cocos2d::CCDelayTime::create(2.f),
+            geode::cocos::CallFuncExt::create([queue = std::move(queue)] {
+                queue();
+            })
+        ));
     }
-
-    this->addComments(std::move(data.unwrap()));
 }
 
 void HookedLevelCell::addComments(CommentData data) {
