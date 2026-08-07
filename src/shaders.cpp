@@ -38,16 +38,20 @@ void main() {
     gl_FragColor = vec4(0.0);
 
     // add a black outline
-    vec2 offset = vec2(0.5 / width, 0.5 / height);
-    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2(-1.0, -1.0)).a;
-    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 0.0, -1.0)).a;
-    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 1.0, -1.0)).a;
-    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2(-1.0,  0.0)).a;
-    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 0.0,  0.0)).a;
-    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 1.0,  0.0)).a;
-    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2(-1.0,  1.0)).a;
-    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 0.0,  1.0)).a;
-    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 1.0,  1.0)).a;
+    // fade to 0.125x opacity where it overlaps the original texture
+    // though this kind of still doesn't really work i guess it improves it a bit
+    float multiplier = smoothstep(0.125, 1.0, 1.0 - texture2D(CC_Texture0, v_texCoord).a);
+
+    vec2 offset = vec2(1.0 / width, 1.0 / height) / 2.0;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2(-1.0, -1.0)).a * multiplier;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 0.0, -1.0)).a * multiplier;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 1.0, -1.0)).a * multiplier;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2(-1.0,  0.0)).a * multiplier;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 0.0,  0.0)).a * multiplier;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 1.0,  0.0)).a * multiplier;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2(-1.0,  1.0)).a * multiplier;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 0.0,  1.0)).a * multiplier;
+    gl_FragColor.a += texture2D(CC_Texture0, v_texCoord + offset * vec2( 1.0,  1.0)).a * multiplier;
 
     // fade 30 units on the right edge
     float fadeStart = width - 30.0;
