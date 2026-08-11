@@ -1,4 +1,7 @@
 # Comments Preview
+## v1.0.4
+- Improved communication with the server and batched requests better
+
 ## v1.0.3
 - Fixed a QOLMod crash
 - Improved performance by using Geode's Label class over Cocos's CCLabelBMFont

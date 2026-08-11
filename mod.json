@@ -7,7 +7,7 @@
         "ios": "2.2081"
     },
 
-    "version": "v1.0.3",
+    "version": "v1.0.4",
     "id": "undefined0.comments-preview",
     "name": "Comments Preview",
     "developer": "undefined0",
@@ -21,5 +21,19 @@
 
     "links": {
         "source": "https://github.com/undefined06855/Comments-Preview"
+    },
+
+    "settings": {
+        "endpoint": {
+            "name": "API Endpoint",
+            "type": "string",
+            "description": "The API endpoint for fetching comments in bulk through a proxy, without the trailing slash. See https://github.com/undefined06855/Comments-Preview-Server, for hosting your own server.",
+            "default": "https://comments-preview.dankmeme.dev/v1"
+        },
+        "logging": {
+            "name": "Logging",
+            "type": "bool",
+            "default": false
+        }
     }
 }

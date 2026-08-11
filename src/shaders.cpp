@@ -1,4 +1,5 @@
 #include "shaders.hpp"
+#include "utils.hpp"
 
 const GLchar* g_fadeShaderVertex = R"(
 attribute vec4 a_position;
@@ -77,7 +78,7 @@ void loadShaders() {
     auto program = new cocos2d::CCGLProgram;
     bool ret = program->initWithVertexShaderByteArray(g_fadeShaderVertex, g_fadeShaderFragment);
     if (!ret) {
-        geode::log::warn("uh oh whoopsie poopsies yo shader failed");
+        comments::log::warn("uh oh whoopsie poopsies yo shader failed");
         g_fadeShaderFailedToLoad = true;
         return;
     }
@@ -89,7 +90,7 @@ void loadShaders() {
     program->link();
     program->updateUniforms();
 
-    geode::log::info("now you can see brainrotted comments two clicks faster!");
+    comments::log::info("hi, shader compiled");
 
     cache->addProgram(program, "fade_shader"_spr);
 }

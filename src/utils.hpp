@@ -7,10 +7,10 @@
         if (cast.isOk()) { \
             output = cast.unwrap(); \
         } else { \
-            geode::log::warn("Could not unwrap casted: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
+            comments::log::warn("Could not unwrap casted: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
         } \
     } else { \
-        geode::log::warn("Could not unwrap: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
+        comments::log::warn("Could not unwrap: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
     }
 
 #define UNWRAP_INTO_MEMBER_AS(output, thing, asType) \
@@ -19,10 +19,10 @@
         if (cast.isOk()) { \
             output = static_cast<decltype(output)>(cast.unwrap()); \
         } else { \
-            geode::log::warn("Could not unwrap casted: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
+            comments::log::warn("Could not unwrap casted: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
         } \
     } else { \
-        geode::log::warn("Could not unwrap: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
+        comments::log::warn("Could not unwrap: {} ({}@{})", thing.unwrapErr(), __FILE__, __LINE__); \
     }
 
 #define UNWRAP_N_CAST(thing, type) \
@@ -51,3 +51,32 @@ public:
     cocos2d::CCArray* getChildren() { return m_fakeChildren; }
     unsigned int getChildrenCount() { return 0; }
 };
+
+namespace comments::log {
+
+template <typename... Args>
+inline void trace(geode::format::FmtStr<Args...> str, Args&&... args) {
+    if (geode::Mod::get()->getSettingValue<bool>("logging")) geode::log::trace(str, std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+inline void debug(geode::format::FmtStr<Args...> str, Args&&... args) {
+    if (geode::Mod::get()->getSettingValue<bool>("logging")) geode::log::debug(str, std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+inline void info(geode::format::FmtStr<Args...> str, Args&&... args) {
+    if (geode::Mod::get()->getSettingValue<bool>("logging")) geode::log::info(str, std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+inline void warn(geode::format::FmtStr<Args...> str, Args&&... args) {
+    if (geode::Mod::get()->getSettingValue<bool>("logging")) geode::log::warn(str, std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+inline void error(geode::format::FmtStr<Args...> str, Args&&... args) {
+    if (geode::Mod::get()->getSettingValue<bool>("logging")) geode::log::error(str, std::forward<Args>(args)...);
+}
+
+}

@@ -8,12 +8,23 @@ BatchRequester& BatchRequester::get() {
     return instance;
 }
 
+BatchRequester::BatchRequester()
+    : m_timerStarted(false)
+    , m_timer(0.f) {}
+
 void BatchRequester::init() {
     cocos2d::CCScheduler::get()->scheduleUpdateForTarget(this, 0, false);
 }
 
 void BatchRequester::queueID(int id) {
+    comments::log::debug("Queueing {}", id);
     m_levelIDQueue.push_back(id);
+
+    if (!m_timerStarted) {
+        comments::log::debug("...and starting timer");
+        m_timerStarted = true;
+        m_timer = 0.f;
+    }
 }
 
 arc::Future<geode::Result<>> BatchRequester::fetchComments(std::vector<int> ids) {
@@ -28,9 +39,10 @@ arc::Future<geode::Result<>> BatchRequester::fetchComments(std::vector<int> ids)
 
     geode::utils::web::WebRequest req;
     req.param("levelIDs", levelIDs);
+    req.param("modVersion", geode::Mod::get()->getVersion().toVString());
     req.timeout(std::chrono::seconds(10));
 
-    auto res = co_await req.get("https://comments-preview.dankmeme.dev/v1/comments");
+    auto res = co_await req.get(fmt::format("{}/comments", geode::Mod::get()->getSettingValue<std::string>("endpoint")));
 
     GEODE_CO_UNWRAP_INTO(auto json, res.json());
 
@@ -44,7 +56,7 @@ arc::Future<geode::Result<>> BatchRequester::fetchComments(std::vector<int> ids)
             auto id = geode::utils::numFromString<int>(key);
 
             if (id.isErr()) {
-                geode::log::warn("invalid id {}", key);
+                comments::log::warn("invalid id {}", key);
                 continue;
             }
 
@@ -76,15 +88,24 @@ geode::Result<CommentData> BatchRequester::getCommentData(int id) {
 void BatchRequester::update(float dt) {
     if (m_levelIDQueue.empty()) return;
 
-    auto queueCopy = m_levelIDQueue;
-    geode::async::spawn([this, queueCopy = std::move(queueCopy)] -> arc::Future<> {
-        auto res = co_await this->fetchComments(queueCopy);
-        if (res.isErr()) {
-            geode::log::warn("failed to fetch {} comments: {}", queueCopy.size(), res.unwrapErr());
-        }
-    });
+    if (m_timerStarted) {
+        m_timer += dt;
+        if (m_timer < .5f) return;
 
-    m_levelIDQueue.clear();
+        comments::log::info("Sending request with {} ids", m_levelIDQueue.size());
+
+        m_timerStarted = false;
+
+        auto queueCopy = m_levelIDQueue;
+        geode::async::spawn([this, queueCopy = std::move(queueCopy)] -> arc::Future<> {
+            auto res = co_await this->fetchComments(queueCopy);
+            if (res.isErr()) {
+                comments::log::warn("failed to fetch {} comments: {}", queueCopy.size(), res.unwrapErr());
+            }
+        });
+
+        m_levelIDQueue.clear();
+    }
 }
 
 $on_mod(Loaded) {

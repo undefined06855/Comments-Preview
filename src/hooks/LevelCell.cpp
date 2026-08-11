@@ -2,6 +2,7 @@
 #include "../BatchRequester.hpp"
 #include "../CachedCommentsUpdatedEvent.hpp"
 #include "../ui/CommentPreviewNode.hpp"
+#include "../utils.hpp"
 #include <Geode/ui/PopupManager.hpp>
 
 HookedLevelCell::Fields::Fields()
@@ -25,30 +26,42 @@ void HookedLevelCell::attemptAddComments() {
 }
 
 void HookedLevelCell::queueThis() {
+    if (m_level->m_levelID == 0) return;
+
     auto fields = m_fields.self();
     if (fields->attempts > 3) return;
 
-    auto queue = [=, this] {
-        BatchRequester::get().queueID(m_level->m_levelID);
-        fields->attempts += 1;
+    // Try This - Pegboard Nerds
+    comments::log::debug("queue this on for size, mister {}", m_level->m_levelID);
 
-        this->addEventListener("comments-event"_spr, CachedCommentsUpdatedEvent(m_level->m_levelID), [this, fields] {
-            this->removeEventListener("comments-event"_spr);
-            this->attemptAddComments();
-            return geode::ListenerResult::Propagate;
-        });
-    };
+    // queue instantly if its our first try, else wait 2s
+    this->runAction(cocos2d::CCSequence::createWithTwoActions(
+        cocos2d::CCDelayTime::create(fields->attempts == 0 ? 0.f : 2.f),
+        geode::cocos::CallFuncExt::create([=, this] {
+            if (!this->getParent()) {
+                comments::log::debug("no parent {}", m_level->m_levelID);
+                this->queueThis();
+                return;
+            }
 
-    if (fields->attempts == 0) {
-        queue();
-    } else {
-        this->runAction(cocos2d::CCSequence::createWithTwoActions(
-            cocos2d::CCDelayTime::create(2.f),
-            geode::cocos::CallFuncExt::create([queue = std::move(queue)] {
-                queue();
-            })
-        ));
-    }
+            // if we're way offscreen, queueThis again
+            auto worldPos = this->getParent()->convertToWorldSpace(this->getPosition());
+            if (worldPos.y < -cocos2d::CCDirector::get()->getWinSize().height) {
+                comments::log::debug("too far down {}", m_level->m_levelID);
+                this->queueThis();
+                return;
+            }
+
+            BatchRequester::get().queueID(m_level->m_levelID);
+            fields->attempts += 1;
+
+            this->addEventListener("comments-event"_spr, CachedCommentsUpdatedEvent(m_level->m_levelID), [this, fields] {
+                this->removeEventListener("comments-event"_spr);
+                this->attemptAddComments();
+                return geode::ListenerResult::Propagate;
+            });
+        })
+    ));
 }
 
 void HookedLevelCell::addComments(CommentData data) {
@@ -82,7 +95,7 @@ void HookedLevelCell::addComments(CommentData data) {
             ).showQueue();
 
         }
-        
+
         return;
     }
 
