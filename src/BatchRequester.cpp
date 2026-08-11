@@ -40,6 +40,9 @@ arc::Future<geode::Result<>> BatchRequester::fetchComments(std::vector<int> ids)
     geode::utils::web::WebRequest req;
     req.param("levelIDs", levelIDs);
     req.param("modVersion", geode::Mod::get()->getVersion().toVString());
+    req.param("platform", GEODE_PLATFORM_NAME);
+    req.param("geodeVersion", geode::Loader::get()->getVersion().toVString());
+    req.param("gdVersion", geode::Loader::get()->getGameVersion());
     req.timeout(std::chrono::seconds(10));
 
     auto res = co_await req.get(fmt::format("{}/comments", geode::Mod::get()->getSettingValue<std::string>("endpoint")));
