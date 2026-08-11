@@ -1,6 +1,7 @@
 # Comments Preview
 ## v1.0.3
-- Fix a QOLMod crash
+- Fixed a QOLMod crash
+- Improved performance by using Geode's Label class over Cocos's CCLabelBMFont
 
 ## v1.0.2
 - Improved the black outline when fading out by making it less "thick"

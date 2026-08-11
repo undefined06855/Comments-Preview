@@ -50,7 +50,7 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
     likesSprite->setScale(.25f);
     likesWrapper->addChild(likesSprite);
 
-    auto likesLabel = cocos2d::CCLabelBMFont::create("...", "bigFont.fnt");
+    auto likesLabel = geode::Label::create("...", "bigFont.fnt");
     likesLabel->setID("likes-label");
     likesLabel->setScale(.15f);
     likesWrapper->addChild(likesLabel);
@@ -60,7 +60,7 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
     m_labelWrapper->setID("label-wrapper");
     m_labelWrapper->setContentSize({ this->getContentWidth() - iconXPos, this->getContentHeight() });
 
-    auto label = cocos2d::CCLabelBMFont::create("...", "chatFont.fnt");
+    auto label = geode::Label::create("...", "chatFont.fnt");
     label->setID("label");
     label->setScale(.6f);
     label->setAnchorPoint({ 0.f, .5f });
