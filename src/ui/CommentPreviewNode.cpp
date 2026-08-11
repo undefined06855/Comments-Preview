@@ -1,4 +1,5 @@
 #include "CommentPreviewNode.hpp"
+#include "../utils.hpp"
 
 CommentPreviewNode* CommentPreviewNode::create(CommentData data, float availableWidth) {
     auto ret = new CommentPreviewNode;
@@ -66,7 +67,7 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
     label->setPosition({ labelPadLeft, this->getContentHeight() / 2.f });
     m_labelWrapper->addChild(label);
 
-    auto renderNode = alpha::ui::RenderNode::create(m_labelWrapper, true);
+    auto renderNode = FixRenderNode::create(m_labelWrapper, true);
     renderNode->setID("render-node");
     renderNode->setAnchorPoint({ 0.f, .5f });
     this->addChildAtPosition(renderNode, geode::Anchor::Left, { iconXPos, 0.f });

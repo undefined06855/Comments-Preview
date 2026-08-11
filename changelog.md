@@ -1,4 +1,7 @@
 # Comments Preview
+## v1.0.3
+- Fix a QOLMod crash
+
 ## v1.0.2
 - Improved the black outline when fading out by making it less "thick"
 
