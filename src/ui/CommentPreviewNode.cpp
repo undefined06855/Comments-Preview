@@ -1,6 +1,24 @@
 #include "CommentPreviewNode.hpp"
 #include "../utils.hpp"
 
+alpha::ui::RenderNode* CommentPreviewNode::createAndWrap(CommentData data, float availableWidth, float margin) {
+    auto node = CommentPreviewNode::create(std::move(data), availableWidth);
+    node->setID("comment-preview");
+
+    // for extra margin around the commentpreviewnode, else overhanging elements would get cut off
+    auto wrap = cocos2d::CCNode::create();
+    wrap->setID("comment-preview-wrap");
+    wrap->setAnchorPoint({ .5f, .5f });
+    wrap->setContentSize(node->getContentSize() + cocos2d::CCSize{ margin, margin });
+    wrap->addChildAtPosition(node, geode::Anchor::Center);
+
+    auto ret = RetainingRenderNode::create(wrap, true);
+    ret->setID("comment-preview-render-node");
+    node->m_renderNode = ret;
+
+    return ret;
+}
+
 CommentPreviewNode* CommentPreviewNode::create(CommentData data, float availableWidth) {
     auto ret = new CommentPreviewNode;
     if (ret->init(std::move(data), availableWidth)) {
@@ -17,18 +35,25 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
 
     m_index = -1;
     m_data = std::move(data);
+    m_renderNode = nullptr;
 
     float labelPadLeft = 15.f;
     float labelPadRight = 20.f;
     float iconXPos = 8.0625;
 
-    this->setAnchorPoint({ 0.f, .5f });
+    this->setAnchorPoint({ .5f, .5f });
     this->setContentSize({ availableWidth, 16.f });
+
+    auto authorLabel = geode::Label::create("...", "bigFont.fnt");
+    authorLabel->setID("author-label");
+    authorLabel->setScale(.15f);
+    authorLabel->setZOrder(2);
+    this->addChildAtPosition(authorLabel, geode::Anchor::Left, { iconXPos, 8.5f });
 
     auto icon = cue::PlayerIcon::create(IconType::Cube);
     icon->setID("icon");
     icon->setScale(.5f);
-    icon->setZOrder(2);
+    icon->setZOrder(1);
     this->addChildAtPosition(icon, geode::Anchor::Left, { iconXPos, 0.f });
 
     auto likesWrapper = cocos2d::CCNodeRGBA::create();
@@ -56,19 +81,19 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
     likesWrapper->addChild(likesLabel);
 
     // so that the rendernode has the correct size with constrain set to true
-    m_labelWrapper = cocos2d::CCNode::create();
-    m_labelWrapper->setID("label-wrapper");
-    m_labelWrapper->setContentSize({ this->getContentWidth() - iconXPos, this->getContentHeight() });
+    auto labelWrapper = cocos2d::CCNode::create();
+    labelWrapper->setID("label-wrapper");
+    labelWrapper->setContentSize({ this->getContentWidth() - iconXPos, this->getContentHeight() });
 
-    auto label = geode::Label::create("...", "chatFont.fnt");
-    label->setID("label");
-    label->setScale(.6f);
-    label->setAnchorPoint({ 0.f, .5f });
-    label->setPosition({ labelPadLeft, this->getContentHeight() / 2.f });
-    m_labelWrapper->addChild(label);
+    auto bodyLabel = geode::Label::create("...", "chatFont.fnt");
+    bodyLabel->setID("comment-body");
+    bodyLabel->setScale(.6f);
+    bodyLabel->setAnchorPoint({ 0.f, .5f });
+    bodyLabel->setPosition({ labelPadLeft, this->getContentHeight() / 2.f });
+    labelWrapper->addChild(bodyLabel);
 
-    auto renderNode = FixRenderNode::create(m_labelWrapper, true);
-    renderNode->setID("render-node");
+    auto renderNode = RetainingRenderNode::create(labelWrapper, true);
+    renderNode->setID("label-render-node");
     renderNode->setAnchorPoint({ 0.f, .5f });
     this->addChildAtPosition(renderNode, geode::Anchor::Left, { iconXPos, 0.f });
 
@@ -93,8 +118,11 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
 
                 auto& comment = m_data.comments.at(m_index);
 
-                label->setString(comment.content.c_str());
+                authorLabel->setString(comment.playerName.c_str());
+                bodyLabel->setString(comment.content.c_str());
+
                 icon->updateIcons(comment.player);
+
                 likesLabel->setString(fmt::to_string(comment.likes).c_str());
                 auto sprite = comment.likes < 0 ? "GJ_dislikesIcon_001.png" : "GJ_likesIcon_001.png";
                 likesSprite->setDisplayFrame(cocos2d::CCSpriteFrameCache::get()->spriteFrameByName(sprite));
@@ -102,13 +130,11 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
             }),
 
             geode::cocos::CallFuncExt::create([=, this] {
-                label->runAction(cocos2d::CCFadeIn::create(1.f));
-                icon->runAction(cocos2d::CCFadeIn::create(1.f));
-                likesWrapper->runAction(cocos2d::CCFadeIn::create(1.f));
+                if (m_renderNode) m_renderNode->runAction(cocos2d::CCFadeIn::create(1.f));
             }), cocos2d::CCDelayTime::create(1.5f),
 
             geode::cocos::CallFuncExt::create([=, this] {
-                float movementLeft = -(label->getScaledContentWidth() - m_labelWrapper->getContentWidth()) - labelPadLeft - labelPadRight;
+                float movementLeft = -(bodyLabel->getScaledContentWidth() - labelWrapper->getContentWidth()) - labelPadLeft - labelPadRight;
                 if (movementLeft > 0) return;
 
                 // this lets us use a variable length and delay
@@ -116,8 +142,8 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
                 // there's certainly better solutions to this but this is the simplest i could think of without making
                 // a custom ccactioninterval
 
-                float length = label->getContentWidth() / 150.f;
-                label->runAction(cocos2d::CCSequence::create(
+                float length = bodyLabel->getContentWidth() / 150.f;
+                bodyLabel->runAction(cocos2d::CCSequence::create(
                     geode::cocos::CallFuncExt::create([this] { this->pauseSchedulerAndActions(); }),
                     cocos2d::CCMoveBy::create(length, { movementLeft, 0.f }),
                     geode::cocos::CallFuncExt::create([this] { this->resumeSchedulerAndActions(); }),
@@ -128,13 +154,11 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
             cocos2d::CCDelayTime::create(.5f),
 
             geode::cocos::CallFuncExt::create([=, this] {
-                label->runAction(cocos2d::CCFadeOut::create(1.f));
-                icon->runAction(cocos2d::CCFadeOut::create(1.f));
-                likesWrapper->runAction(cocos2d::CCFadeOut::create(1.f));
+                if (m_renderNode) m_renderNode->runAction(cocos2d::CCFadeOut::create(1.f));
             }), cocos2d::CCDelayTime::create(1.f),
 
             geode::cocos::CallFuncExt::create([=, this] {
-                label->setPositionX(labelPadLeft);
+                bodyLabel->setPositionX(labelPadLeft);
             }),
 
             nullptr

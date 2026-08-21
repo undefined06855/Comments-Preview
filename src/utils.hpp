@@ -32,13 +32,14 @@
         return member; \
     }())
 
-class FixRenderNode : public alpha::ui::RenderNode {
+class RetainingRenderNode : public alpha::ui::RenderNode {
 public:
-    static FixRenderNode* create(cocos2d::CCNode* node, bool constrain) {
-        auto ret = new FixRenderNode;
+    static RetainingRenderNode* create(cocos2d::CCNode* node, bool constrain) {
+        auto ret = new RetainingRenderNode;
         if (ret->init(node, constrain)) {
             ret->autorelease();
             ret->m_fakeChildren = cocos2d::CCArray::create();
+            ret->m_node = node;
             return ret;
         }
 
@@ -47,7 +48,9 @@ public:
     }
 
     geode::Ref<cocos2d::CCArray> m_fakeChildren;
+    geode::Ref<cocos2d::CCNode> m_node;
 
+    // qolmod "fix"
     cocos2d::CCArray* getChildren() { return m_fakeChildren; }
     unsigned int getChildrenCount() { return 0; }
 };

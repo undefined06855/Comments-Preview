@@ -4,12 +4,11 @@
 
 class CommentPreviewNode : public cocos2d::CCNode {
 public:
+    static alpha::ui::RenderNode* createAndWrap(CommentData data, float availableWidth, float margin);
     static CommentPreviewNode* create(CommentData data, float availableWidth);
     bool init(CommentData data, float availableWidth);
 
     int m_index;
     CommentData m_data;
-
-    // just because rendernode doesnt use a ref
-    geode::Ref<cocos2d::CCNode> m_labelWrapper;
+    alpha::ui::RenderNode* m_renderNode; // don't ref this else it will be a circular retain
 };

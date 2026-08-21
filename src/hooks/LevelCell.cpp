@@ -93,7 +93,6 @@ void HookedLevelCell::addComments(CommentData data) {
                 ),
                 "ok"
             ).showQueue();
-
         }
 
         return;
@@ -134,10 +133,16 @@ void HookedLevelCell::addComments(CommentData data) {
 
     if (isMini) availableWidth -= 16.f;
 
-    auto node = CommentPreviewNode::create(std::move(data), availableWidth);
-    node->setID("comment-preview"_spr);
+    // margin around the comment preview node that the rendernode still captures
+    // for stuff that goes outside of the node's content size
+    float margin = 40.f;
+    float scale = isMini ? .7f : 1.f;
+    pos.x -= (margin / 2.f) * scale;
+
+    auto node = CommentPreviewNode::createAndWrap(std::move(data), availableWidth, margin);
+    node->setID("comment-preview-rendernode"_spr);
+    node->setAnchorPoint({ 0.f, .5f });
+    node->setScale(scale);
     node->setPosition(pos);
     m_mainLayer->addChild(node);
-
-    if (isMini) node->setScale(.7f);
 }

@@ -1,4 +1,8 @@
 # Comments Preview
+## v1.0.5
+- Improved fading out by making everything fade together
+- Added the commenter's name above their icon
+
 ## v1.0.4
 - Improved communication with the server and batched requests better
 
