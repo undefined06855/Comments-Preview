@@ -32,23 +32,6 @@
         return member; \
     }())
 
-class RetainingRenderNode : public alpha::ui::RenderNode {
-public:
-    static RetainingRenderNode* create(cocos2d::CCNode* node, bool constrain) {
-        auto ret = new RetainingRenderNode;
-        if (ret->init(node, constrain)) {
-            ret->autorelease();
-            ret->m_node = node;
-            return ret;
-        }
-
-        delete ret;
-        return nullptr;
-    }
-
-    geode::Ref<cocos2d::CCNode> m_node;
-};
-
 namespace comments::log {
 
 template <typename... Args>

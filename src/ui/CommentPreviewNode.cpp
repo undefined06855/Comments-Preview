@@ -1,5 +1,5 @@
 #include "CommentPreviewNode.hpp"
-#include "../utils.hpp"
+#include <alphalaneous.alphas-ui-pack/include/nodes/RenderNode.hpp>
 
 alpha::ui::RenderNode* CommentPreviewNode::createAndWrap(CommentData data, float availableWidth, float margin) {
     auto node = CommentPreviewNode::create(std::move(data), availableWidth);
@@ -12,8 +12,8 @@ alpha::ui::RenderNode* CommentPreviewNode::createAndWrap(CommentData data, float
     wrap->setContentSize(node->getContentSize() + cocos2d::CCSize{ margin, margin });
     wrap->addChildAtPosition(node, geode::Anchor::Center);
 
-    auto ret = RetainingRenderNode::create(wrap, true);
-    ret->setID("comment-preview-render-node");
+    auto ret = alpha::ui::RenderNode::create(wrap, true);
+    ret->setOpacity(0);
     node->m_renderNode = ret;
 
     return ret;
@@ -92,13 +92,14 @@ bool CommentPreviewNode::init(CommentData data, float availableWidth) {
     bodyLabel->setPosition({ labelPadLeft, this->getContentHeight() / 2.f });
     labelWrapper->addChild(bodyLabel);
 
-    auto renderNode = RetainingRenderNode::create(labelWrapper, true);
+    auto renderNode = alpha::ui::RenderNode::create(labelWrapper, true);
     renderNode->setID("label-render-node");
     renderNode->setAnchorPoint({ 0.f, .5f });
     this->addChildAtPosition(renderNode, geode::Anchor::Left, { iconXPos, 0.f });
 
     // this gets picked up in the shader
     // not sure why uniforms dont work, they just dont?
+    renderNode->setOpacityModifyRGB(false);
     uint16_t width = renderNode->getContentWidth();
     uint16_t height = renderNode->getContentHeight();
     renderNode->setColor({

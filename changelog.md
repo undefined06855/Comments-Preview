@@ -1,4 +1,7 @@
 # Comments Preview
+## v1.0.7
+- Fixed nothing actually showing up ever
+
 ## v1.0.6
 - Fixed a linkage error
 
