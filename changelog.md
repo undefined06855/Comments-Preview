@@ -1,4 +1,7 @@
 # Comments Preview
+## v1.0.8
+- Fixed the fading not working correctly by fixing a premultiplied alpha issue
+
 ## v1.0.7
 - Fixed nothing actually showing up ever
 

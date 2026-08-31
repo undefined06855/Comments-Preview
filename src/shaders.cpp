@@ -60,8 +60,9 @@ void main() {
     fadeEnd = 5.0;
     alpha *= smoothstep(fadeStart, fadeEnd, v_texCoord.x * width);
 
-    gl_FragColor += texture2D(CC_Texture0, v_texCoord);
+    vec4 tex = texture2D(CC_Texture0, v_texCoord);
     gl_FragColor.a *= alpha;
+    gl_FragColor += tex * alpha;
 }
 )";
 
