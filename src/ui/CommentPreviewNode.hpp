@@ -1,6 +1,6 @@
 #pragma once
 #include "../CommentData.hpp"
-#include <alphalaneous.alphas-ui-pack/include/nodes/RenderNode.hpp>
+#include <alphalaneous.alphas-ui-pack/nodes/RenderNode.hpp>
 
 class CommentPreviewNode : public cocos2d::CCNode {
 public:

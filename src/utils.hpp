@@ -1,5 +1,5 @@
 #pragma once
-#include <alphalaneous.alphas-ui-pack/include/nodes/RenderNode.hpp>
+#include <alphalaneous.alphas-ui-pack/nodes/RenderNode.hpp>
 
 #define UNWRAP_INTO_MEMBER(output, thing) \
     if (thing.isOk()) { \

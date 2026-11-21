@@ -1,5 +1,5 @@
 #include "CommentPreviewNode.hpp"
-#include <alphalaneous.alphas-ui-pack/include/nodes/RenderNode.hpp>
+#include <alphalaneous.alphas-ui-pack/nodes/RenderNode.hpp>
 
 alpha::ui::RenderNode* CommentPreviewNode::createAndWrap(CommentData data, float availableWidth, float margin) {
     auto node = CommentPreviewNode::create(std::move(data), availableWidth);
