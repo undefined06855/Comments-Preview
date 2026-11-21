@@ -1,4 +1,7 @@
 # Comments Preview
+## v1.1.0
+- Added Geode v6 and GD 2.2091 support!
+
 ## v1.0.8
 - Fixed the fading not working correctly by fixing a premultiplied alpha issue
 
